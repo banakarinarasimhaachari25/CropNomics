@@ -1,0 +1,69 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Connection test document
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow get: if isSignedIn() && (isOwner(userId) || resource.data.email == request.auth.token.email);
+      allow list: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow create: if isSignedIn() && isOwner(userId) && incoming().uid == request.auth.uid;
+      allow update: if isSignedIn() && isOwner(userId) && incoming().uid == existing().uid;
+      allow delete: if isSignedIn() && isOwner(userId);
+    }
+
+    // Crop Trade Lots (Marketplace listings)
+    match /lots/{lotId} {
+      allow read: if true;
+      allow create: if isSignedIn() && incoming().createdBy == request.auth.uid;
+      allow update: if isSignedIn() && existing().createdBy == request.auth.uid;
+      allow delete: if isSignedIn() && existing().createdBy == request.auth.uid;
+    }
+
+    // Trade Requests
+    match /tradeRequests/{requestId} {
+      allow read: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.traderUid == request.auth.uid);
+      allow create: if isSignedIn() && incoming().buyerId == request.auth.uid;
+      allow update: if isSignedIn() && (existing().buyerId == request.auth.uid || existing().traderUid == request.auth.uid);
+      allow delete: if isSignedIn() && existing().buyerId == request.auth.uid;
+    }
+
+    // Chat Sessions
+    match /chats/{chatId} {
+      allow read, write: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid) && (request.resource == null || incoming().userId == request.auth.uid);
+
+      match /messages/{messageId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+  }
+}

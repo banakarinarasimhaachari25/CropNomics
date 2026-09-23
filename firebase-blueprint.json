@@ -1,0 +1,106 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile registered via Firebase Auth",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 120 },
+        "role": { "type": "string", "enum": ["farmer", "trader", "retailer", "consumer", "admin"] },
+        "phone": { "type": "string", "maxLength": 20 },
+        "district": { "type": "string", "maxLength": 60 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "displayName", "email", "role"]
+    },
+    "CropTradeLot": {
+      "title": "CropTradeLot",
+      "description": "AgroDirect marketplace crop listing or inventory lot",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "cropName": { "type": "string", "maxLength": 80 },
+        "variety": { "type": "string", "maxLength": 80 },
+        "bags": { "type": "number" },
+        "tons": { "type": "number" },
+        "pricePerBag": { "type": "number" },
+        "buyingPriceTotal": { "type": "number" },
+        "traderName": { "type": "string", "maxLength": 80 },
+        "traderPhone": { "type": "string", "maxLength": 25 },
+        "district": { "type": "string", "maxLength": 60 },
+        "location": { "type": "string", "maxLength": 120 },
+        "createdBy": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["cropName", "bags", "pricePerBag", "traderName", "createdBy"]
+    },
+    "TradeRequest": {
+      "title": "TradeRequest",
+      "description": "Direct trade request or offer submitted by a buyer/retailer to a trader",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "lotId": { "type": "string", "maxLength": 64 },
+        "buyerId": { "type": "string", "maxLength": 128 },
+        "buyerName": { "type": "string", "maxLength": 80 },
+        "buyerPhone": { "type": "string", "maxLength": 25 },
+        "bagsRequested": { "type": "number" },
+        "offeredPricePerBag": { "type": "number" },
+        "notes": { "type": "string", "maxLength": 500 },
+        "status": { "type": "string", "enum": ["pending", "accepted", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["lotId", "buyerId", "buyerName", "bagsRequested", "status"]
+    },
+    "ChatSession": {
+      "title": "ChatSession",
+      "description": "Multi-turn Gemini AI Chat Session for agricultural advisory",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 120 },
+        "role": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "role"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Individual message inside a Gemini AI Chat thread",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "sender": { "type": "string", "enum": ["user", "model"] },
+        "text": { "type": "string", "maxLength": 5000 },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["sender", "text"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profile document keyed by auth UID"
+    },
+    "/lots/{lotId}": {
+      "schema": { "$ref": "#/entities/CropTradeLot" },
+      "description": "Public marketplace listings of crop lots"
+    },
+    "/tradeRequests/{requestId}": {
+      "schema": { "$ref": "#/entities/TradeRequest" },
+      "description": "Buyer trade requests and requirements"
+    },
+    "/chats/{chatId}": {
+      "schema": { "$ref": "#/entities/ChatSession" },
+      "description": "Gemini AI advisor chat sessions"
+    },
+    "/chats/{chatId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/ChatMessage" },
+      "description": "Messages belonging to an AI chat thread"
+    }
+  }
+}

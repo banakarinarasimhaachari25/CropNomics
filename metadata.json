@@ -1,0 +1,8 @@
+{
+  "name": "CropNomics",
+  "description": "AgroDirect agricultural marketplace connecting farmers, traders, and retailers with transparent supply chain pricing and crop analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
